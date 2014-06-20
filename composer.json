@@ -1,0 +1,27 @@
+{
+    "name": "tf/image",
+    "type": "library",
+    "description": "",
+    "keywords": ["resize","crop","rotate","image"],
+    "homepage": "http://lib.tf",
+    "license": "GPL-2.0+",
+    "authors": [
+        {
+            "name": "toph",
+            "email": "toph@toph.fr"
+        },
+        {
+            "name": "Vincent Lemaire",
+            "email": "lemaire@brocelia.net"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=5.2.6",
+        "ext-gd": "*"
+    },
+    "autoload": {
+        "files": ["src/Tf/Image/constants.php"],
+        "classmap": ["src/"]
+    }
+}
