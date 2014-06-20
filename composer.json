@@ -20,6 +20,9 @@
         "php": ">=5.2.6",
         "ext-gd": "*"
     },
+    "suggest": {
+        "tf/utils": "TfUtils::image() or TfUtils::rsz() is an easy way to use TfImage"
+    },
     "autoload": {
         "files": ["src/Tf/Image/constants.php"],
         "classmap": ["src/"]
