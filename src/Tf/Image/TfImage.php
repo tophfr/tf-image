@@ -1,5 +1,5 @@
 <?php
-/**
+/*
  * @author toph <toph@toph.fr>
  *
  * This file is a part of the TfLib and ExploTf Project.
@@ -22,16 +22,47 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+/**
+ * Class TfImage
+ */
 class TfImage
 {
 
+    /**
+     * @var resource
+     */
     var $img;
+    /**
+     * @var
+     */
+    /**
+     * @var
+     */
+    /**
+     * @var
+     */
     var $sourceFile, $sourceMode, $unChanged;
+    /**
+     * @var array
+     */
     var $filters;
+    /**
+     * @var int
+     */
     var $errno;
+    /**
+     * @var null
+     */
     var $logCallBack = null;
 
     /**
+     * TfImage constructor.
+     * @param null $mixed
+     * @param null $height
+     * @param null $bgColor
+     * @param bool $alpha
+     *
      * new TfImage()
      * new TfImage(string $filePath)
      * new TfImage(resource $gdResource)
@@ -74,6 +105,10 @@ class TfImage
         }
     }
 
+    /**
+     * @param $file
+     * @return bool
+     */
     function loadFile($file)
     {
         $this->sourceFile = $file;
@@ -124,6 +159,10 @@ class TfImage
         return true;
     }
 
+    /**
+     * @param $file
+     * @return bool
+     */
     function loadFileGD($file)
     {
         $this->sourceFile = $file;
@@ -145,6 +184,10 @@ class TfImage
         return true;
     }
 
+    /**
+     * @param $file
+     * @return bool
+     */
     function loadFileGD2($file)
     {
         $this->sourceFile = $file;
@@ -166,6 +209,10 @@ class TfImage
         return true;
     }
 
+    /**
+     * @param $filter
+     * @return bool
+     */
     function addFilter($filter)
     {
         if (!is_subclass_of($filter, 'TfImageFilter')) {
@@ -180,17 +227,26 @@ class TfImage
         return true;
     }
 
+    /**
+     * @param $i
+     */
     function removeFilterAt($i)
     {
         unset($this->filters[$i]);
     }
 
+    /**
+     * @param bool $free
+     */
     function removeFilters($free = false)
     {
         if ($free) foreach ($this->filters as $filter) $filter->free();
         $this->filters = array();
     }
 
+    /**
+     * @return resource
+     */
     function make()
     {
         $img = $this->img;
@@ -207,16 +263,31 @@ class TfImage
         return $img;
     }
 
+    /**
+     * @param string $file
+     * @return bool|int
+     */
     function storeFileGD($file = '')
     {
         return $this->_storeFile('imagegd', $file);
     }
 
+    /**
+     * @param string $file
+     * @return bool|int
+     */
     function storeFileGD2($file = '')
     {
         return $this->_storeFile('imagegd2', $file);
     }
 
+    /**
+     * @param null $file
+     * @param null $type
+     * @param int $quality
+     * @param bool $copyIfUnChanged
+     * @return bool|int
+     */
     function storeFile($file = null, $type = null, $quality = TF_IMAGE_DEFAULT_QUALITY, $copyIfUnChanged = true)
     {
 
@@ -254,6 +325,13 @@ class TfImage
         return $this->_storeFile($function, $file, $quality, $copyIfUnChanged && $type == $this->sourceMode);
     }
 
+    /**
+     * @param $function
+     * @param null $file
+     * @param int $quality
+     * @param bool $copyIfUnChanged
+     * @return bool|int
+     */
     function _storeFile($function, $file = null, $quality = TF_IMAGE_DEFAULT_QUALITY, $copyIfUnChanged = false)
     {
         if (!$function || !function_exists($function)) {
@@ -286,21 +364,35 @@ class TfImage
         return $bool;
     }
 
+    /**
+     * @param int $type
+     * @param int $quality
+     * @return bool|int
+     */
     function out($type = IMAGETYPE_JPEG, $quality = TF_IMAGE_DEFAULT_QUALITY)
     {
         return $this->storeFile(null, $type, $quality);
     }
 
+    /**
+     * @return int
+     */
     function getOriginalWidth()
     {
         return imagesx($this->img);
     }
 
+    /**
+     * @return int
+     */
     function getOriginalHeight()
     {
         return imagesy($this->img);
     }
 
+    /**
+     *
+     */
     function free()
     {
         $this->removeFilters(true);
@@ -310,11 +402,17 @@ class TfImage
         $this->img = null;
     }
 
+    /**
+     * @param $logCallBack
+     */
     function setLogCallBack($logCallBack)
     {
         $this->logCallBack = $logCallBack;
     }
 
+    /**
+     * @param $message
+     */
     function log($message)
     {
         if ($this->logCallBack) {
@@ -322,6 +420,9 @@ class TfImage
         }
     }
 
+    /**
+     *
+     */
     function __destruct()
     {
         $this->free();
@@ -349,8 +450,9 @@ class TfImage
                             - vertical align : 0.5 (center)
                             - horizontal align : =vertical align
                             - dontResizeIfBiggerThanSource : 0
-                             - dontCropIfSmaller : 'h': by height, 'w' or 1: by width
-                             - bgColor : ffffff or auto
+                            - dontCropIfSmaller : 'h': by height, 'w' or 1: by width
+                            - bgColor : ffffff or auto
+                            - bgMirror : 1
                     */
                     $i = 1;
                     if (is_numeric($options[$i]) || !$options[$i]) {
@@ -384,10 +486,13 @@ class TfImage
                     $dontCropIfSmaller = isset($options[$i]) && $options[$i] !== '' ? $options[$i] : false;
                     $i++;
                     $bgColor = isset($options[$i]) ? $options[$i] : false;
+                    $i++;
+                    $bgMirror = isset($options[$i]) ? $options[$i] : false;
                     if ($w && $h) {
                         $filter = new TfImageFilterResize($w, $h, $mode, $positionH, $positionV, $dontResizeIfBiggerThanSource);
                         if ($dontCropIfSmaller !== false) $filter->setDontCropIfSmaller($dontCropIfSmaller);
                         if ($bgColor !== false) $filter->setBgColor($bgColor);
+                        if ($bgMirror !== false) $filter->setBgMirror($bgMirror);
                         $this->addFilter($filter);
                     } else {
                         $this->log("Missing dimensions in '$m'");

@@ -25,24 +25,45 @@
 class TfImageFilter
 {
 
+    /**
+     * @var string
+     */
     var $name;
+
+    /**
+     * @var
+     */
     var $errno;
 
+    /**
+     * TfImageFilter constructor.
+     * @param string $name
+     */
     function __construct($name = 'null transform')
     {
         $this->name = $name;
     }
 
+    /**
+     * @param $img
+     * @return mixed
+     */
     function apply($img)
     {
         return $img;
     }
 
+    /**
+     * @return bool
+     */
     function isSupported()
     {
         return true;
     }
 
+    /**
+     *
+     */
     function free()
     {
     }

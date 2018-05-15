@@ -65,7 +65,7 @@ class TfImageFilterAddText extends TfImageFilter
         $this->width = $width;
     }
 
-    function apply(&$img)
+    function apply($img)
     {
 
         foreach ($this->text as $mixed) {

@@ -43,6 +43,7 @@ class TfImageFilterResize extends TfImageFilter
     var $dontResizeIfBiggerThanSource;
     var $dontCropIfSmaller;
     var $bgColor = 'auto';
+    var $bgMirror = false;
 
     /**        new TfImageFilterResize($width, $height)
      * or    new TfImageFilterResize($size, $mode)
@@ -90,6 +91,11 @@ class TfImageFilterResize extends TfImageFilter
     function setBgColor($bgColor)
     {
         $this->bgColor = $bgColor;
+    }
+
+    function setBgMirror($bgMirror)
+    {
+        $this->bgMirror = (float)$bgMirror;
     }
 
     function apply($img)
@@ -145,11 +151,11 @@ class TfImageFilterResize extends TfImageFilter
                 }
             } elseif (TF_RESIZE_FIT == $mode) {
                 if ($w1 / $h1 > $w2 / $h2) {
-                    $h2 = $w2 * $h1 / $w1;
-                    $y2 = ($h - $h2) * $this->positionV;
+                    $h2 = round($w2 * $h1 / $w1);
+                    $y2 = round(($h - $h2) * $this->positionV);
                 } else {
-                    $w2 = $h2 * $w1 / $h1;
-                    $x2 = ($w - $w2) * $this->positionH;
+                    $w2 = round($h2 * $w1 / $h1);
+                    $x2 = round(($w - $w2) * $this->positionH);
                 }
             } elseif (TF_RESIZE_X == $mode) {
                 $h = $h2 = $w2 * $h1 / $w1;
@@ -175,35 +181,59 @@ class TfImageFilterResize extends TfImageFilter
             return null;
         }
 
-        $new = @imagecreatetruecolor($w, $h);
+        $new = imagecreatetruecolor($w, $h);
         imagealphablending($new, false);
         imagesavealpha($new, true);
+        imageantialias($new, true);
+        $transparent = imagecolorallocatealpha($new, 255, 255, 255, 127);
+        imagefill($new, 0, 0, $transparent);
+        imagecolortransparent($new, $transparent);
+
         if ($x2 > 0 || $y2 > 0 || $w2 < $w || $h2 < $h) {
-            //$bg = imagecolorallocatealpha($new, 255, 255, 255, 127);
-            if (preg_match('/^[0-9a-f]{6}$/', $this->bgColor)) {
-                $bg = imagecolorallocate($new
-                    , hexdec(substr($this->bgColor, 0, 2))
-                    , hexdec(substr($this->bgColor, 2, 2))
-                    , hexdec(substr($this->bgColor, 4, 2))
-                );
-            } else {
-                $bg = imagecolorat($img, 0, 0);
+
+            if ($this->bgColor) {
+                if (preg_match('/^[0-9a-f]{6}$/', $this->bgColor)) {
+                    $bg = imagecolorallocate($new
+                        , hexdec(substr($this->bgColor, 0, 2))
+                        , hexdec(substr($this->bgColor, 2, 2))
+                        , hexdec(substr($this->bgColor, 4, 2))
+                    );
+                } else {
+                    $bg = imagecolorat($img, 0, 0);
+                }
+                imagefill($new, 0, 0, $bg);
             }
-            imagefill($new, 0, 0, $bg);
+
+            if ($this->bgMirror) {
+                if ($w > $h) {
+                    $w1p = ceil($w1 * $this->bgMirror);
+                    if ($x2 > 0) {
+                        imagecopyresampled($new, $img, 0, $y2, $x1 + $w1p - 1, $y1, $x2, $h2, -$w1p, $h1);
+                    }
+                    if ($x2 + $w2 < $w) {
+                        imagecopyresampled($new, $img, $x2 + $w2 - 1, $y2, $x1 + $w1 - 1, $y1, $w - $x2 - $w2 + 2, $h2, -$w1p, $h1);
+                    }
+                } else {
+                    $h1p = ceil($h1 * $this->bgMirror);
+                    if ($y2>0) {
+                        imagecopyresampled($new, $img, $x2, 0, $x1, $y1 + $h1p - 1, $w2, $y2, $w1, -$h1p);
+                    }
+                    if ($y2 + $w2 < $h) {
+                        imagecopyresampled($new, $img, $x2, $y2 + $h2 - 1, $x1, $y1 + $h1 - 1, $w2, $h - $y2 - $h2 + 2, $w1, -$h1p);
+                    }
+                }
+            }
+
         }
-        if (function_exists('imagecopyresampled')) {
-            $function = 'imagecopyresampled';
-        } else {
-            $function = 'imagecopyresized';
-        }
-        $function($new, $img, $x2, $y2, $x1, $y1, $w2, $h2, $w1, $h1);
+
+        imagecopyresampled($new, $img, $x2, $y2, $x1, $y1, $w2, $h2, $w1, $h1);
 
         return $new;
     }
 
     function isSupported()
     {
-        return function_exists('imagecopyresized') || function_exists('imagecopyresampled');
+        return function_exists('imagecopyresampled');
     }
 
 }

@@ -34,7 +34,7 @@ class TfImageFilterBgColor extends TfImageFilter
         $this->blue = $blue;
     }
 
-    function apply(&$img)
+    function apply($img)
     {
         $c = imagecolorallocate($img, $this->red, $this->green, $this->blue);
         imagefill($img, 0, 0, $c);

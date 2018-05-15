@@ -25,7 +25,7 @@
 class TfImageFilterCopyTrueColor extends TfImageFilter
 {
 
-    function apply(&$img)
+    function apply($img)
     {
         $width = imagesx($img);
         $height = imagesy($img);
